@@ -344,8 +344,14 @@ section { padding: clamp(2rem, 5vw, 4rem) clamp(1.2rem, 5vw, 3rem); }
   padding: 1.5rem 0;
   width: max-content;
   animation: ticker-scroll 28s linear infinite;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .photo-ticker__track:hover { animation-play-state: paused; }
+.photo-ticker__track.is-dragging { cursor: grabbing; }
+.photo-ticker__track.is-dragging .photo-ticker__item { pointer-events: none; }
 
 .photo-ticker__item {
   flex-shrink: 0;

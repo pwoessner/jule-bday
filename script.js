@@ -292,6 +292,103 @@ function initHeroTilt() {
 }
 
 /* ------------------------------------------------------------
+   6 · Gallery drag-to-scroll
+   ------------------------------------------------------------ */
+function initGallery() {
+  const track = document.querySelector(".photo-ticker__track");
+  if (!track || prefersReducedMotion) return;
+
+  const DURATION = 28; // must match CSS animation-duration
+  let dragging = false;
+  let offsetX   = 0;  // current manual translateX (px)
+  let velX      = 0;  // momentum velocity (px/frame)
+  let prevX     = 0;
+  let prevTime  = 0;
+  let rafId     = null;
+  let manual    = false; // true while CSS animation is suspended
+
+  function halfWidth() { return track.scrollWidth / 2; }
+
+  function wrap(x) {
+    const hw = halfWidth();
+    x = x % hw;
+    if (x > 0) x -= hw;
+    return x;
+  }
+
+  function liveOffset() {
+    const m = new DOMMatrix(getComputedStyle(track).transform);
+    return m.m41;
+  }
+
+  function suspendAnimation() {
+    if (manual) return;
+    manual  = true;
+    offsetX = liveOffset();
+    track.style.animation = "none";
+    track.style.transform = `translateX(${offsetX}px)`;
+  }
+
+  function resumeAnimation() {
+    manual = false;
+    const hw       = halfWidth();
+    const wrapped  = wrap(offsetX);
+    const progress = -wrapped / hw;          // 0 → 1 across one loop
+    const delay    = -(progress * DURATION); // negative = start mid-animation
+    track.style.transform  = "";
+    track.style.animation  = `ticker-scroll ${DURATION}s linear ${delay}s infinite`;
+  }
+
+  function momentumStep() {
+    velX *= 0.94;
+    if (Math.abs(velX) < 0.3) { resumeAnimation(); return; }
+    offsetX = wrap(offsetX + velX);
+    track.style.transform = `translateX(${offsetX}px)`;
+    rafId = requestAnimationFrame(momentumStep);
+  }
+
+  track.addEventListener("pointerdown", (e) => {
+    if (e.button > 0) return;
+    cancelAnimationFrame(rafId);
+    suspendAnimation();
+    dragging  = true;
+    prevX     = e.clientX;
+    prevTime  = performance.now();
+    velX      = 0;
+    track.setPointerCapture(e.pointerId);
+    track.classList.add("is-dragging");
+  });
+
+  track.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const now = performance.now();
+    const dt  = Math.max(now - prevTime, 1);
+    const dx  = e.clientX - prevX;
+    velX      = (dx / dt) * 16; // ~px/frame at 60 fps
+    prevX     = e.clientX;
+    prevTime  = now;
+    offsetX   = wrap(offsetX + dx);
+    track.style.transform = `translateX(${offsetX}px)`;
+  });
+
+  function onRelease() {
+    if (!dragging) return;
+    dragging = false;
+    track.classList.remove("is-dragging");
+    rafId = requestAnimationFrame(momentumStep);
+  }
+
+  track.addEventListener("pointerup", onRelease);
+  track.addEventListener("pointercancel", () => {
+    if (!dragging) return;
+    dragging = false;
+    track.classList.remove("is-dragging");
+    velX = 0;
+    resumeAnimation();
+  });
+}
+
+/* ------------------------------------------------------------
    Boot
    ------------------------------------------------------------ */
 window.addEventListener("DOMContentLoaded", () => {
@@ -299,6 +396,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initSparkles();
   initForm();
   initHeroTilt();
+  initGallery();
   countUpAge();
 });
 
