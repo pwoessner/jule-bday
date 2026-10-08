@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Alles Gute zum 30. Geburtstag, Jule – ein kleines Überraschungswochenende wartet auf dich." />
+  <meta name="theme-color" content="#ffd9e3" />
+  <title>Happy Birthday Lieblings Jule 🎉</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%82%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Ambient sparkle layer -->
+  <div class="sparkle-layer" id="sparkleLayer" aria-hidden="true"></div>
+
+  <!-- ======================= HERO ======================= -->
+  <header class="hero" id="top">
+    <div class="balloons" aria-hidden="true">
+      <span class="balloon b1"></span>
+      <span class="balloon b2"></span>
+      <span class="balloon b3"></span>
+      <span class="balloon b4"></span>
+      <span class="balloon b5"></span>
+    </div>
+
+    <div class="hero__inner">
+      <p class="hero__eyebrow reveal">🎉 Es ist so weit 🎉</p>
+      <h1 class="hero__title reveal">
+        <span class="line">Happy Birthday</span>
+        <span class="line accent">Lieblings&nbsp;Jule</span>
+      </h1>
+
+      <div class="big-number reveal" aria-label="30 Jahre">
+        <span class="big-number__value" id="ageCounter" data-target="30">0</span>
+        <span class="big-number__caption">Jahre</span>
+      </div>
+
+      <figure class="hero__photo reveal">
+        <picture>
+          <source srcset="images/web/hero.webp" type="image/webp" />
+          <img src="images/web/hero.jpg" alt="Unser Lieblingsmensch Jule" width="1600" height="1200" fetchpriority="high" />
+        </picture>
+      </figure>
+
+
+    </div>
+  </header>
+
+  <main>
+    <!-- ======================= PRESENT ======================= -->
+    <section class="present" id="present">
+      <div class="card card--present reveal">
+        <span class="present__ribbon">🎁 Dein Geschenk</span>
+        <h2 class="present__text">
+          Wir freuen uns auf ein gemeinsames
+          <span class="present__hl">Überraschungswochenende</span>
+          mit dir
+        </h2>
+        <p class="present__sub">
+          Pack die Vorfreude ein – wohin es geht, bleibt (noch) ein Geheimnis.
+          Nur eins ist sicher: Es wird unvergesslich. 💛
+        </p>
+      </div>
+    </section>
+
+    <!-- ======================= GALLERY ======================= -->
+    <section class="gallery-section" id="gallery">
+      <h2 class="section-title reveal">Unsere schönsten Momente</h2>
+      <p class="section-subtitle reveal">Ein paar Erinnerungen, die wir mit dir teilen durften.</p>
+
+      <div class="gallery" id="gallery-grid">
+        <figure class="gallery__item reveal" data-full="images/web/photo1.jpg">
+          <picture><source srcset="images/web/photo1.webp" type="image/webp" /><img src="images/web/photo1.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
+        </figure>
+        <figure class="gallery__item reveal" data-full="images/web/photo2.jpg">
+          <picture><source srcset="images/web/photo2.webp" type="image/webp" /><img src="images/web/photo2.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
+        </figure>
+        <figure class="gallery__item reveal" data-full="images/web/photo3.jpg">
+          <picture><source srcset="images/web/photo3.webp" type="image/webp" /><img src="images/web/photo3.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
+        </figure>
+        <figure class="gallery__item reveal" data-full="images/web/photo4.jpg">
+          <picture><source srcset="images/web/photo4.webp" type="image/webp" /><img src="images/web/photo4.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
+        </figure>
+        <figure class="gallery__item reveal" data-full="images/web/photo5.jpg">
+          <picture><source srcset="images/web/photo5.webp" type="image/webp" /><img src="images/web/photo5.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
+        </figure>
+        <figure class="gallery__item reveal" data-full="images/web/photo6.jpg">
+          <picture><source srcset="images/web/photo6.webp" type="image/webp" /><img src="images/web/photo6.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ======================= DECISIONS ======================= -->
+    <section class="decisions" id="decisions">
+      <div class="card card--form reveal">
+        <h2 class="section-title">Jetzt bist du dran 🗓️</h2>
+        <p class="section-subtitle">
+          Wähle drei Wunsch-Wochenenden aus und sag uns, wer mitkommt.
+        </p>
+
+        <form id="tripForm" class="trip-form" novalidate>
+          <fieldset class="trip-form__group">
+            <legend>1 · Deine drei Wunsch-Wochenenden</legend>
+            <div class="date-grid">
+              <label class="field">
+                <span class="field__label">Option 1</span>
+                <input type="date" name="date1" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Option 2</span>
+                <input type="date" name="date2" required />
+              </label>
+              <label class="field">
+                <span class="field__label">Option 3</span>
+                <input type="date" name="date3" required />
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="trip-form__group">
+            <legend>2 · Mit wem geht's los?</legend>
+            <div class="toggle-grid" role="radiogroup" aria-label="Reisebegleitung">
+              <label class="toggle-card">
+                <input type="radio" name="company" value="Mit den Boys" required />
+                <span class="toggle-card__inner">
+                  <span class="toggle-card__emoji">👩‍❤️‍👨</span>
+                  <span class="toggle-card__title">Mit den Boys</span>
+                  <span class="toggle-card__desc">Die Jungs kommen mit</span>
+                </span>
+              </label>
+              <label class="toggle-card">
+                <input type="radio" name="company" value="Nur wir Mädels" required />
+                <span class="toggle-card__inner">
+                  <span class="toggle-card__emoji">💃</span>
+                  <span class="toggle-card__title">Nur wir Mädels</span>
+                  <span class="toggle-card__desc">Girls only Weekend</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
+          <p class="form-error" id="formError" role="alert" hidden></p>
+
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <span class="submit-btn__label">Abschicken</span>
+          </button>
+        </form>
+
+        <div class="form-success" id="formSuccess" hidden>
+          <div class="form-success__emoji">🥳</div>
+          <h3>Juhuuu, danke dir!</h3>
+          <p>Deine Auswahl ist bei uns angekommen. Wir melden uns mit den Details –
+             freu dich auf dein Überraschungswochenende! 💛</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+  <script src="script.js" defer></script>
+</body>
+</html>
