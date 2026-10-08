@@ -188,12 +188,71 @@ function initForm() {
 }
 
 /* ------------------------------------------------------------
+   5 · Hero photo 3D tilt (mouse, pen & touch)
+   ------------------------------------------------------------ */
+function initHeroTilt() {
+  const el = document.querySelector(".hero__photo");
+  if (!el || prefersReducedMotion) return;
+
+  const MAX_TILT = 11;
+  let frame = null;
+  let pending = null;
+
+  function render() {
+    frame = null;
+    if (!pending) return;
+    const { x, y } = pending;
+    el.style.setProperty("--ry", ((x - 0.5) * 2 * MAX_TILT).toFixed(2) + "deg");
+    el.style.setProperty("--rx", (-(y - 0.5) * 2 * MAX_TILT).toFixed(2) + "deg");
+    el.style.setProperty("--gx", (x * 100).toFixed(1) + "%");
+    el.style.setProperty("--gy", (y * 100).toFixed(1) + "%");
+    el.style.setProperty("--sx", (-(x - 0.5) * 30).toFixed(1) + "px");
+    el.style.setProperty("--sy", (26 - (y - 0.5) * 24).toFixed(1) + "px");
+  }
+
+  function track(e) {
+    const r = el.getBoundingClientRect();
+    const clamp = (v) => Math.min(Math.max(v, 0), 1);
+    pending = {
+      x: clamp((e.clientX - r.left) / r.width),
+      y: clamp((e.clientY - r.top) / r.height),
+    };
+    if (!frame) frame = requestAnimationFrame(render);
+  }
+
+  function start(e) {
+    el.classList.add("is-tilting");
+    track(e);
+  }
+
+  function stop() {
+    el.classList.remove("is-tilting");
+    if (frame) {
+      cancelAnimationFrame(frame);
+      frame = null;
+    }
+    pending = null;
+    ["--rx", "--ry", "--sx", "--sy"].forEach((p) => el.style.removeProperty(p));
+    el.style.setProperty("--gx", "50%");
+    el.style.setProperty("--gy", "50%");
+  }
+
+  el.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") start(e); });
+  el.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") start(e); });
+  el.addEventListener("pointermove", (e) => { if (el.classList.contains("is-tilting")) track(e); });
+  el.addEventListener("pointerleave", stop);
+  el.addEventListener("pointerup", stop);
+  el.addEventListener("pointercancel", stop);
+}
+
+/* ------------------------------------------------------------
    Boot
    ------------------------------------------------------------ */
 window.addEventListener("DOMContentLoaded", () => {
   initScrollReveal();
   initSparkles();
   initForm();
+  initHeroTilt();
   countUpAge();
 });
 

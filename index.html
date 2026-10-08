@@ -71,28 +71,18 @@
 
     <!-- ======================= GALLERY ======================= -->
     <section class="gallery-section" id="gallery">
-      <h2 class="section-title reveal">Unsere schönsten Momente</h2>
-      <p class="section-subtitle reveal">Ein paar Erinnerungen, die wir mit dir teilen durften.</p>
-
-      <div class="gallery" id="gallery-grid">
-        <figure class="gallery__item reveal" data-full="images/web/photo1.jpg">
-          <picture><source srcset="images/web/photo1.webp" type="image/webp" /><img src="images/web/photo1.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
-        </figure>
-        <figure class="gallery__item reveal" data-full="images/web/photo2.jpg">
-          <picture><source srcset="images/web/photo2.webp" type="image/webp" /><img src="images/web/photo2.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
-        </figure>
-        <figure class="gallery__item reveal" data-full="images/web/photo3.jpg">
-          <picture><source srcset="images/web/photo3.webp" type="image/webp" /><img src="images/web/photo3.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
-        </figure>
-        <figure class="gallery__item reveal" data-full="images/web/photo4.jpg">
-          <picture><source srcset="images/web/photo4.webp" type="image/webp" /><img src="images/web/photo4.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
-        </figure>
-        <figure class="gallery__item reveal" data-full="images/web/photo5.jpg">
-          <picture><source srcset="images/web/photo5.webp" type="image/webp" /><img src="images/web/photo5.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
-        </figure>
-        <figure class="gallery__item reveal" data-full="images/web/photo6.jpg">
-          <picture><source srcset="images/web/photo6.webp" type="image/webp" /><img src="images/web/photo6.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture>
-        </figure>
+      <div class="photo-ticker">
+        <div class="photo-ticker__track">
+          <div class="photo-ticker__item"><picture><source srcset="images/web/photo1.webp" type="image/webp" /><img src="images/web/photo1.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture></div>
+          <div class="photo-ticker__item"><picture><source srcset="images/web/photo2.webp" type="image/webp" /><img src="images/web/photo2.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture></div>
+          <div class="photo-ticker__item"><picture><source srcset="images/web/photo3.webp" type="image/webp" /><img src="images/web/photo3.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture></div>
+          <div class="photo-ticker__item"><picture><source srcset="images/web/photo4.webp" type="image/webp" /><img src="images/web/photo4.jpg" alt="Erinnerung mit Jule" loading="lazy" /></picture></div>
+          <!-- duplicates for seamless loop -->
+          <div class="photo-ticker__item" aria-hidden="true"><picture><source srcset="images/web/photo1.webp" type="image/webp" /><img src="images/web/photo1.jpg" alt="" loading="lazy" /></picture></div>
+          <div class="photo-ticker__item" aria-hidden="true"><picture><source srcset="images/web/photo2.webp" type="image/webp" /><img src="images/web/photo2.jpg" alt="" loading="lazy" /></picture></div>
+          <div class="photo-ticker__item" aria-hidden="true"><picture><source srcset="images/web/photo3.webp" type="image/webp" /><img src="images/web/photo3.jpg" alt="" loading="lazy" /></picture></div>
+          <div class="photo-ticker__item" aria-hidden="true"><picture><source srcset="images/web/photo4.webp" type="image/webp" /><img src="images/web/photo4.jpg" alt="" loading="lazy" /></picture></div>
+        </div>
       </div>
     </section>
 
