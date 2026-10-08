@@ -73,10 +73,35 @@ function initScrollReveal() {
     return;
   }
 
+  // Touch/mobile devices (Safari included) fire far fewer scroll events and
+  // have a fluctuating innerHeight due to the dynamic browser toolbar. Driving
+  // opacity/transform inline on every scroll event causes abrupt jumps.
+  // Use IntersectionObserver + CSS transitions instead — they run on the
+  // compositor and are smooth regardless of scroll speed.
+  const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+  if (isCoarsePointer) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          // Clear any stale inline styles so the CSS transition can take over.
+          entry.target.style.opacity = "";
+          entry.target.style.transform = "";
+          entry.target.classList.add("in");
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -6% 0px" }
+    );
+    scrollItems.forEach((el) => observer.observe(el));
+    return;
+  }
+
   const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 
-  // Reveal progress is driven by each item's position in the viewport, so the
-  // fade / rise tracks the scroll movement instead of snapping in at once.
+  // Desktop: reveal progress is driven by each item's position in the viewport,
+  // so the fade / rise tracks the scroll movement instead of snapping in at once.
   function update() {
     const vh = window.innerHeight;
     const start = vh * 0.95; // begin revealing when the top crosses here
@@ -337,7 +362,10 @@ function initSingleGallery(track, reversed) {
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
 
-    if (!dragging) {
+    // Below the fold the lazy images may not be measurable yet. Hold position
+    // until the track has a real width, otherwise pos drifts off-screen and
+    // Safari never lazy-loads the (now off-viewport) images — a dead ticker.
+    if (!dragging && halfWidth() > 0) {
       vel = BASE_DRIFT + (vel - BASE_DRIFT) * Math.exp(-DECAY * dt);
       pos += vel * dt;
       wrap();
