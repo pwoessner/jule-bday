@@ -41,12 +41,15 @@
         <span class="big-number__caption">Jahre</span>
       </div>
 
-      <figure class="hero__photo reveal">
-        <picture>
-          <source srcset="images/web/hero.webp" type="image/webp" />
-          <img src="images/web/hero.jpg" alt="Unser Lieblingsmensch Jule" width="1600" height="1200" fetchpriority="high" />
-        </picture>
-      </figure>
+      <div class="hero__photo reveal">
+        <figure class="tilt-card" id="tiltCard">
+          <picture>
+            <source srcset="images/web/hero.webp" type="image/webp" />
+            <img src="images/web/hero.jpg" alt="Unser Lieblingsmensch Jule" width="1600" height="1200" fetchpriority="high" draggable="false" />
+          </picture>
+          <span class="tilt-card__glare" aria-hidden="true"></span>
+        </figure>
+      </div>
 
 
     </div>

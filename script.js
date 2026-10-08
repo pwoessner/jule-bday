@@ -188,61 +188,107 @@ function initForm() {
 }
 
 /* ------------------------------------------------------------
-   5 · Hero photo 3D tilt (mouse, pen & touch)
+   5 · Hero photo 3D tilt with spring physics (mouse, pen & touch)
    ------------------------------------------------------------ */
 function initHeroTilt() {
-  const el = document.querySelector(".hero__photo");
-  if (!el || prefersReducedMotion) return;
+  const card = document.getElementById("tiltCard");
+  if (!card || prefersReducedMotion) return;
+  const glare = card.querySelector(".tilt-card__glare");
 
-  const MAX_TILT = 11;
-  let frame = null;
-  let pending = null;
+  const BASE_TILT = -2;
+  const MAX_ROT = 14;
+  const MAX_SHIFT = 16;
+  const STIFFNESS = 0.14;
+  const DAMPING = 0.75;
+  const REST = 0.002;
 
-  function render() {
-    frame = null;
-    if (!pending) return;
-    const { x, y } = pending;
-    el.style.setProperty("--ry", ((x - 0.5) * 2 * MAX_TILT).toFixed(2) + "deg");
-    el.style.setProperty("--rx", (-(y - 0.5) * 2 * MAX_TILT).toFixed(2) + "deg");
-    el.style.setProperty("--gx", (x * 100).toFixed(1) + "%");
-    el.style.setProperty("--gy", (y * 100).toFixed(1) + "%");
-    el.style.setProperty("--sx", (-(x - 0.5) * 30).toFixed(1) + "px");
-    el.style.setProperty("--sy", (26 - (y - 0.5) * 24).toFixed(1) + "px");
+  const cur = { rx: 0, ry: 0, tx: 0, ty: 0, rz: BASE_TILT, sc: 1 };
+  const vel = { rx: 0, ry: 0, tx: 0, ty: 0, rz: 0, sc: 0 };
+  const tgt = { rx: 0, ry: 0, tx: 0, ty: 0, rz: BASE_TILT, sc: 1 };
+  const gCur = { pos: 50, op: 0 };
+  const gTgt = { pos: 50, op: 0 };
+
+  let raf = null;
+  let engaged = false;
+
+  function settled() {
+    const springsRest = Object.keys(cur).every(
+      (k) => Math.abs(vel[k]) < REST && Math.abs(tgt[k] - cur[k]) < REST
+    );
+    return springsRest && Math.abs(gTgt.op - gCur.op) < REST && Math.abs(gTgt.pos - gCur.pos) < 0.1;
   }
 
-  function track(e) {
-    const r = el.getBoundingClientRect();
-    const clamp = (v) => Math.min(Math.max(v, 0), 1);
-    pending = {
-      x: clamp((e.clientX - r.left) / r.width),
-      y: clamp((e.clientY - r.top) / r.height),
-    };
-    if (!frame) frame = requestAnimationFrame(render);
-  }
+  function paint() {
+    card.style.transform =
+      `translate3d(${cur.tx.toFixed(2)}px, ${cur.ty.toFixed(2)}px, 0)` +
+      ` rotateX(${cur.rx.toFixed(2)}deg) rotateY(${cur.ry.toFixed(2)}deg)` +
+      ` rotate(${cur.rz.toFixed(2)}deg) scale(${cur.sc.toFixed(3)})`;
 
-  function start(e) {
-    el.classList.add("is-tilting");
-    track(e);
-  }
+    card.style.boxShadow =
+      `${(-cur.ry * 1.8).toFixed(1)}px ${(26 + cur.rx * 1.8).toFixed(1)}px ` +
+      `${(60 + Math.abs(cur.ry) * 1.5).toFixed(1)}px rgba(255, 94, 146, 0.28)`;
 
-  function stop() {
-    el.classList.remove("is-tilting");
-    if (frame) {
-      cancelAnimationFrame(frame);
-      frame = null;
+    if (glare) {
+      glare.style.setProperty("--glare-pos", gCur.pos.toFixed(1) + "%");
+      glare.style.setProperty("--glare-angle", (115 + cur.ry * 2.5).toFixed(1) + "deg");
+      glare.style.setProperty("--glare-op", gCur.op.toFixed(3));
     }
-    pending = null;
-    ["--rx", "--ry", "--sx", "--sy"].forEach((p) => el.style.removeProperty(p));
-    el.style.setProperty("--gx", "50%");
-    el.style.setProperty("--gy", "50%");
   }
 
-  el.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") start(e); });
-  el.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") start(e); });
-  el.addEventListener("pointermove", (e) => { if (el.classList.contains("is-tilting")) track(e); });
-  el.addEventListener("pointerleave", stop);
-  el.addEventListener("pointerup", stop);
-  el.addEventListener("pointercancel", stop);
+  function step() {
+    for (const k in cur) {
+      vel[k] = (vel[k] + (tgt[k] - cur[k]) * STIFFNESS) * DAMPING;
+      cur[k] += vel[k];
+    }
+    gCur.pos += (gTgt.pos - gCur.pos) * 0.18;
+    gCur.op += (gTgt.op - gCur.op) * 0.12;
+
+    paint();
+    raf = settled() ? null : requestAnimationFrame(step);
+  }
+
+  function kick() {
+    if (!raf) raf = requestAnimationFrame(step);
+  }
+
+  function aim(e) {
+    const r = card.getBoundingClientRect();
+    const clamp = (v) => Math.min(Math.max(v, 0), 1);
+    const x = clamp((e.clientX - r.left) / r.width);
+    const y = clamp((e.clientY - r.top) / r.height);
+
+    tgt.ry = (x - 0.5) * 2 * MAX_ROT;
+    tgt.rx = -(y - 0.5) * 2 * MAX_ROT;
+    tgt.tx = (x - 0.5) * 2 * MAX_SHIFT;
+    tgt.ty = (y - 0.5) * 2 * MAX_SHIFT;
+    gTgt.pos = x * 100;
+    kick();
+  }
+
+  function engage(e) {
+    engaged = true;
+    tgt.rz = 0;
+    tgt.sc = 1.035;
+    gTgt.op = 1;
+    aim(e);
+  }
+
+  function release() {
+    engaged = false;
+    tgt.rx = tgt.ry = tgt.tx = tgt.ty = 0;
+    tgt.rz = BASE_TILT;
+    tgt.sc = 1;
+    gTgt.pos = 50;
+    gTgt.op = 0;
+    kick();
+  }
+
+  card.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") engage(e); });
+  card.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") engage(e); });
+  card.addEventListener("pointermove", (e) => { if (engaged) aim(e); });
+  card.addEventListener("pointerleave", release);
+  card.addEventListener("pointerup", release);
+  card.addEventListener("pointercancel", release);
 }
 
 /* ------------------------------------------------------------
