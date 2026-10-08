@@ -309,19 +309,16 @@ function initHeroTilt() {
 /* ------------------------------------------------------------
    6 · Gallery ticker — auto-drift with touch / drag control
    ------------------------------------------------------------ */
-function initGallery() {
-  const track = document.querySelector(".photo-ticker__track");
-  if (!track || prefersReducedMotion) return;
+function initSingleGallery(track, reversed) {
+  if (!track) return;
 
-  // Drive the ticker in JS so a finger swipe can scrub it directly while the
-  // idle drift keeps going on its own. Page scrolling never affects it.
   track.style.animation = "none";
 
-  const DRIFT = -55;   // px per second, idle leftward drift
-  const DECAY = 2.8;   // per-second settle of flick momentum back to DRIFT
+  const BASE_DRIFT = reversed ? 55 : -55;  // px/s; positive = rightward
+  const DECAY = 2.8;
 
   let pos = 0;
-  let vel = DRIFT;     // px per second
+  let vel = BASE_DRIFT;
   let dragging = false;
   let lastX = 0;
   let lastT = 0;
@@ -341,8 +338,7 @@ function initGallery() {
     last = now;
 
     if (!dragging) {
-      // Ease the current velocity back toward the steady idle drift.
-      vel = DRIFT + (vel - DRIFT) * Math.exp(-DECAY * dt);
+      vel = BASE_DRIFT + (vel - BASE_DRIFT) * Math.exp(-DECAY * dt);
       pos += vel * dt;
       wrap();
       track.style.transform = `translateX(${pos.toFixed(2)}px)`;
@@ -367,7 +363,7 @@ function initGallery() {
     const dx = e.clientX - lastX;
     lastX = e.clientX;
     lastT = now;
-    vel = dx / dt;          // px per second, for release momentum
+    vel = dx / dt;
     pos += dx;
     wrap();
     track.style.transform = `translateX(${pos.toFixed(2)}px)`;
@@ -382,6 +378,15 @@ function initGallery() {
   track.addEventListener("pointercancel", release);
 
   requestAnimationFrame(frame);
+}
+
+function initGallery() {
+  if (prefersReducedMotion) return;
+  document.querySelectorAll(".photo-ticker").forEach((ticker) => {
+    const track = ticker.querySelector(".photo-ticker__track");
+    const reversed = ticker.classList.contains("photo-ticker--reverse");
+    initSingleGallery(track, reversed);
+  });
 }
 
 /* ------------------------------------------------------------
