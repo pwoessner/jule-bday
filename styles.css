@@ -29,24 +29,39 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Gradient lives on html so it fills safe-area insets (status bar / home bar).
-   background-attachment: fixed only on pointer devices — iOS ignores it anyway. */
 html {
-  scroll-behavior: smooth;
   min-height: 100%;
-  background: var(--grad-warm);
-}
-@media (hover: hover) {
-  html { background-attachment: fixed; }
+  scroll-behavior: smooth;
+  background-color: #ffd9e3;
+  background-image: var(--grad-warm);
+  overscroll-behavior-y: none;
 }
 
 body {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
   font-family: "Nunito", system-ui, sans-serif;
   color: var(--ink);
-  background: transparent;
+  background-color: #ffd9e3;
+  background-image: var(--grad-warm);
   line-height: 1.6;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Safari changes the visual viewport while its browser bars expand and collapse.
+   Overscanning a fixed layer keeps that transient area covered. */
+body::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: var(--grad-warm);
+  box-shadow: 0 -120px #ffd9e3, 0 120px #e6dcff;
 }
 
 h1, h2, h3, legend { font-family: "Fredoka", "Nunito", sans-serif; font-weight: 600; line-height: 1.1; }
