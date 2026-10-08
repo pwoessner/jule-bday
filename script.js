@@ -68,22 +68,37 @@ function initScrollReveal() {
   const scrollItems = items.filter((el) => !el.closest(".hero"));
   requestAnimationFrame(() => heroItems.forEach((el) => el.classList.add("in")));
 
-  if (!("IntersectionObserver" in window)) {
-    scrollItems.forEach((i) => i.classList.add("in"));
+  if (prefersReducedMotion) {
+    scrollItems.forEach((el) => el.classList.add("in"));
     return;
   }
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("in");
-          io.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.14, rootMargin: "0px 0px -8% 0px" }
-  );
-  scrollItems.forEach((i) => io.observe(i));
+
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+  // Reveal progress is driven by each item's position in the viewport, so the
+  // fade / rise tracks the scroll movement instead of snapping in at once.
+  function update() {
+    const vh = window.innerHeight;
+    const start = vh * 0.95; // begin revealing when the top crosses here
+    const end = vh * 0.55;   // fully revealed once the top reaches here
+    for (const el of scrollItems) {
+      const top = el.getBoundingClientRect().top;
+      const p = clamp((start - top) / (start - end), 0, 1);
+      el.style.opacity = String(p);
+      el.style.transform = `translateY(${((1 - p) * 42).toFixed(1)}px) scale(${(0.98 + 0.02 * p).toFixed(3)})`;
+    }
+  }
+
+  let ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => { update(); ticking = false; });
+  }
+
+  update();
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
 }
 
 /* ------------------------------------------------------------
@@ -292,69 +307,55 @@ function initHeroTilt() {
 }
 
 /* ------------------------------------------------------------
-   6 · Gallery drag-to-scroll
+   6 · Gallery ticker — auto-drift with touch / drag control
    ------------------------------------------------------------ */
 function initGallery() {
   const track = document.querySelector(".photo-ticker__track");
   if (!track || prefersReducedMotion) return;
 
-  const DURATION = 28; // must match CSS animation-duration
+  // Drive the ticker in JS so a finger swipe can scrub it directly while the
+  // idle drift keeps going on its own. Page scrolling never affects it.
+  track.style.animation = "none";
+
+  const DRIFT = -55;   // px per second, idle leftward drift
+  const DECAY = 2.8;   // per-second settle of flick momentum back to DRIFT
+
+  let pos = 0;
+  let vel = DRIFT;     // px per second
   let dragging = false;
-  let offsetX   = 0;  // current manual translateX (px)
-  let velX      = 0;  // momentum velocity (px/frame)
-  let prevX     = 0;
-  let prevTime  = 0;
-  let rafId     = null;
-  let manual    = false; // true while CSS animation is suspended
+  let lastX = 0;
+  let lastT = 0;
+  let last = performance.now();
 
-  function halfWidth() { return track.scrollWidth / 2; }
+  const halfWidth = () => track.scrollWidth / 2;
 
-  function wrap(x) {
+  function wrap() {
     const hw = halfWidth();
-    x = x % hw;
-    if (x > 0) x -= hw;
-    return x;
+    if (hw <= 0) return;
+    while (pos <= -hw) pos += hw;
+    while (pos > 0) pos -= hw;
   }
 
-  function liveOffset() {
-    const m = new DOMMatrix(getComputedStyle(track).transform);
-    return m.m41;
-  }
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
 
-  function suspendAnimation() {
-    if (manual) return;
-    manual  = true;
-    offsetX = liveOffset();
-    track.style.animation = "none";
-    track.style.transform = `translateX(${offsetX}px)`;
-  }
-
-  function resumeAnimation() {
-    manual = false;
-    const hw       = halfWidth();
-    const wrapped  = wrap(offsetX);
-    const progress = -wrapped / hw;          // 0 → 1 across one loop
-    const delay    = -(progress * DURATION); // negative = start mid-animation
-    track.style.transform  = "";
-    track.style.animation  = `ticker-scroll ${DURATION}s linear ${delay}s infinite`;
-  }
-
-  function momentumStep() {
-    velX *= 0.94;
-    if (Math.abs(velX) < 0.3) { resumeAnimation(); return; }
-    offsetX = wrap(offsetX + velX);
-    track.style.transform = `translateX(${offsetX}px)`;
-    rafId = requestAnimationFrame(momentumStep);
+    if (!dragging) {
+      // Ease the current velocity back toward the steady idle drift.
+      vel = DRIFT + (vel - DRIFT) * Math.exp(-DECAY * dt);
+      pos += vel * dt;
+      wrap();
+      track.style.transform = `translateX(${pos.toFixed(2)}px)`;
+    }
+    requestAnimationFrame(frame);
   }
 
   track.addEventListener("pointerdown", (e) => {
     if (e.button > 0) return;
-    cancelAnimationFrame(rafId);
-    suspendAnimation();
-    dragging  = true;
-    prevX     = e.clientX;
-    prevTime  = performance.now();
-    velX      = 0;
+    dragging = true;
+    lastX = e.clientX;
+    lastT = performance.now();
+    vel = 0;
     track.setPointerCapture(e.pointerId);
     track.classList.add("is-dragging");
   });
@@ -362,30 +363,25 @@ function initGallery() {
   track.addEventListener("pointermove", (e) => {
     if (!dragging) return;
     const now = performance.now();
-    const dt  = Math.max(now - prevTime, 1);
-    const dx  = e.clientX - prevX;
-    velX      = (dx / dt) * 16; // ~px/frame at 60 fps
-    prevX     = e.clientX;
-    prevTime  = now;
-    offsetX   = wrap(offsetX + dx);
-    track.style.transform = `translateX(${offsetX}px)`;
+    const dt = Math.max((now - lastT) / 1000, 0.001);
+    const dx = e.clientX - lastX;
+    lastX = e.clientX;
+    lastT = now;
+    vel = dx / dt;          // px per second, for release momentum
+    pos += dx;
+    wrap();
+    track.style.transform = `translateX(${pos.toFixed(2)}px)`;
   });
 
-  function onRelease() {
+  function release() {
     if (!dragging) return;
     dragging = false;
     track.classList.remove("is-dragging");
-    rafId = requestAnimationFrame(momentumStep);
   }
+  track.addEventListener("pointerup", release);
+  track.addEventListener("pointercancel", release);
 
-  track.addEventListener("pointerup", onRelease);
-  track.addEventListener("pointercancel", () => {
-    if (!dragging) return;
-    dragging = false;
-    track.classList.remove("is-dragging");
-    velX = 0;
-    resumeAnimation();
-  });
+  requestAnimationFrame(frame);
 }
 
 /* ------------------------------------------------------------
