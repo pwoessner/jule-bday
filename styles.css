@@ -29,13 +29,21 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+/* Gradient lives on html so it fills safe-area insets (status bar / home bar).
+   background-attachment: fixed only on pointer devices — iOS ignores it anyway. */
+html {
+  scroll-behavior: smooth;
+  min-height: 100%;
+  background: var(--grad-warm);
+}
+@media (hover: hover) {
+  html { background-attachment: fixed; }
+}
 
 body {
   font-family: "Nunito", system-ui, sans-serif;
   color: var(--ink);
-  background: var(--grad-warm);
-  background-attachment: fixed;
+  background: transparent;
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -379,6 +387,8 @@ section { padding: clamp(2rem, 5vw, 4rem) clamp(1.2rem, 5vw, 3rem); }
   font-size: 1rem;
   font-weight: 700;
   color: var(--ink);
+  /* iOS Safari ignores `color` on date inputs; -webkit-text-fill-color overrides it */
+  -webkit-text-fill-color: var(--ink);
   padding: 0.85rem 1rem;
   border: 2px solid rgba(255, 143, 177, 0.4);
   border-radius: var(--radius-sm);
@@ -474,7 +484,13 @@ section { padding: clamp(2rem, 5vw, 4rem) clamp(1.2rem, 5vw, 3rem); }
    RESPONSIVE
    ============================================================ */
 @media (max-width: 560px) {
-  .date-grid { grid-template-columns: 1fr; }
+  /* Constrain date inputs so they don't span the full card width */
+  .date-grid {
+    grid-template-columns: 1fr;
+  }
+  .field input[type="date"] {
+    max-width: 260px;
+  }
   .toggle-grid { grid-template-columns: 1fr; }
   .tilt-card { transform: rotate(-1deg); }
 }
